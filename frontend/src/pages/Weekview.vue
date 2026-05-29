@@ -3,9 +3,7 @@
     <!-- Top Section Above Header -->
     <div class="flex items-center">
       <FeatherIcon name="calendar" class="h-7 w-7 text-gray-500 mr-2.5" />
-      <span class="font-semibold text-2xl text-gray-500 mr-2"
-        >Task Manager:</span
-      >
+      <span class="font-semibold text-2xl text-gray-500 mr-2">Planner:</span>
       <span class="font-semibold text-2xl">Week View</span>
       <div class="ml-auto space-x-2.5">
         <Button
@@ -90,8 +88,11 @@ const updateFilters = (newFilters) => {
     }
     // Handle department filter separately (filters users, not tasks)
     if (key === 'department') {
-      taskFilters.department = value || ''
-      users.submit({ department: value || null })
+      const newDept = value || ''
+      if (newDept !== taskFilters.department) {
+        taskFilters.department = newDept
+        users.submit({ department: value || null })
+      }
     }
   })
 }

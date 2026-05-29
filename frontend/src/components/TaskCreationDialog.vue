@@ -77,6 +77,26 @@
           :options="priority"
           :required="true"
         />
+        <template v-if="isElevatorInstalled">
+          <div>
+            <label class="block text-xs text-ink-gray-5 mb-1.5">Elevator</label>
+            <Link
+              doctype="Elevator"
+              v-model="form.elevator"
+              placeholder="Select Elevator"
+              class="overflow-hidden"
+            />
+          </div>
+          <div>
+            <label class="block text-xs text-ink-gray-5 mb-1.5">Elevator Address</label>
+            <FormControl
+              type="input"
+              v-model="form.elevator_address"
+              placeholder="Auto-filled from elevator"
+              disabled
+            />
+          </div>
+        </template>
         <!-- Description Text Editor here -->
         <div class="col-span-2">
           <label class="block text-xs text-ink-gray-5 mb-1.5"
@@ -118,19 +138,22 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import {
   Dialog,
   FormControl,
   DatePicker,
   createResource,
   TextEditor,
+  call,
 } from 'frappe-ui'
 import { reactive } from 'vue'
 import { dateFormat, dayjs, raiseToast } from '../utils'
 import { projects, priority, status } from '../data'
 import Link from './Link.vue'
 import Autocomplete2 from './Autocomplete2.vue'
+
+const isElevatorInstalled = window.is_elevator_installed === true
 const props = defineProps({
   users: Array,
   taskName: String,
@@ -151,6 +174,8 @@ const form = reactive({
   start_time: '',
   end_time: '',
   description: '',
+  elevator: null,
+  elevator_address: '',
 })
 
 const dialog = computed(() => {
@@ -216,7 +241,29 @@ function resetState() {
   form.start_time = ''
   form.end_time = ''
   form.description = ''
+  form.elevator = null
+  form.elevator_address = ''
 }
+
+watch(
+  () => form.elevator,
+  async (newVal) => {
+    if (!newVal) {
+      form.elevator_address = ''
+      return
+    }
+    try {
+      const result = await call('frappe.client.get_value', {
+        doctype: 'Elevator',
+        filters: newVal,
+        fieldname: 'title',
+      })
+      form.elevator_address = result?.title || ''
+    } catch {
+      form.elevator_address = ''
+    }
+  },
+)
 
 const newTask = createResource({
   url: 'planner.api.tasks.create_task',

@@ -274,6 +274,9 @@ def create_task(task_doc):
 	new_task.priority = task_doc.get('priority')
 	new_task.project = task_doc.get('project', None)
 
+	if task_doc.get('elevator') is not None and "elevator" in frappe.get_installed_apps():
+		new_task.elevator = task_doc.get('elevator')
+
 	new_task.save()
 
 	# Assign to users using Frappe's native assignment system
@@ -442,9 +445,10 @@ def get_task(name):
 		for a in assignments
 	]
 
-	# Include elevator fields if present on the doctype
-	task_dict["elevator"] = task.get("elevator") or None
-	task_dict["elevator_address"] = task.get("elevator_address") or ""
+	# Include elevator fields only if the elevator app is installed
+	if "elevator" in frappe.get_installed_apps():
+		task_dict["elevator"] = task.get("elevator") or None
+		task_dict["elevator_address"] = task.get("elevator_address") or ""
 
 	return task_dict
 
@@ -462,7 +466,7 @@ def update_task(task_doc):
 	task.project = task_doc.get('project', None)
 	task.completed_on = task_doc.get('completed_on', None)
 
-	if task_doc.get('elevator') is not None:
+	if task_doc.get('elevator') is not None and "elevator" in frappe.get_installed_apps():
 		task.elevator = task_doc.get('elevator')
 
 	task.save()
